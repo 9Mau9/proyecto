@@ -1,27 +1,58 @@
 import PyPDF2
-import spacy
+import re
 import os
 
-pdf_file = open("example.pdf", "rb")
+def read_pdf(pdf_path):
+    
+    with open(pdf_path, 'rb') as f:
+        
+        reader = PyPDF2.PdfReader(f)
+        page = reader.getPage(0)
+        text = page.extract_text()
+        
+    return text
 
-r_pdf = PyPDF2.PdfReader(pdf_file)
+def extract_words(text):
+    
+    words = re.findall(r'\w+', text)
+    
+    return words
 
-numb_pages = r_pdf.numPages
+def compare_words(words, dictionary):
+    
+    common_words = []
+    for word in words:
+        
+        if word.lower() in dictionary:
+            common_words.append(word)
+            
+    return common_words
 
-text = ""
-for page in range(numb_pages):
-    cur_page = r_pdf.getPage(page)
-    text_page = cur_page.extractText()
-    text += text_page
+def generate_new_pdf(common_words, output_path):
+    
+    with open(output_path, 'w', encoding='utf-8') as f:
+        
+        for word in common_words:
+            
+            f.write(word + '\n')
 
-pdf_file.close()
+def main():
+    
+    pdf_path = 'Colocarpdf.pdf'
+    dictionary_path = 'Colocardiccionario.txt'
+    output_path = 'Dondeiraelpdf.pdf'
 
-print(text)
+    text = read_pdf(pdf_path)
+    words = extract_words(text)
 
-nlp = spacy.load("es_core_news_sm")
-doc = nlp(text)
+    with open(dictionary_path, 'r') as f:
+        dictionary = [line.strip() for line in f]
 
-tokens = doc.sents
-for token in tokens:
-    if token.text in w_libra:
-        print(token.text)
+    common_words = compare_words(words, dictionary)
+
+    generate_new_pdf(common_words, output_path)
+
+    print("Archivo PDF generado con éxito:", output_path)
+
+if __name__ == "__main__":
+    main()
